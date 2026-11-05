@@ -52,14 +52,26 @@ Future<String> deviceId() async {
   return id;
 }
 
+Duration _clockOffset = Duration.zero;
+
+/// Lè Ayiti (soti nan sèvè a), pa lè telefòn lan.
+DateTime haitiNow() => DateTime.now().add(_clockOffset);
+
+Future<void> syncClock() async {
+  try {
+    final s = await sb.rpc('haiti_now') as String;
+    _clockOffset = DateTime.parse(s).difference(DateTime.now());
+  } catch (_) {}
+}
+
 DateTime closeToday(String t) {
   final p = t.split(':');
-  final n = DateTime.now();
+  final n = haitiNow();
   return DateTime(n.year, n.month, n.day, int.parse(p[0]), int.parse(p[1]));
 }
 
 bool drawOpen(Map<String, dynamic> d) =>
-    DateTime.now().isBefore(closeToday(d['close_time'] as String));
+    haitiNow().isBefore(closeToday(d['close_time'] as String));
 
 Future<List<String>?> askFields(BuildContext c, String title, List<String> labels,
     {List<String>? initial, TextInputType kb = TextInputType.number}) {
