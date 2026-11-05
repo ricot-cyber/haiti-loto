@@ -30,6 +30,7 @@ class _VendorShellState extends State<VendorShell> {
     try {
       dev = await deviceId();
       await sb.rpc('register_device', params: {'p_device': dev});
+      await syncClock();
       final s = await sb.from('director_settings').select().maybeSingle();
       appSettings = s ?? {};
     } catch (e) {
