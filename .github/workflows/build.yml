@@ -1,0 +1,44 @@
+name: Build APK
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Mete kòd la nan rasin lan
+        run: |
+          if [ -d pkg ]; then cp -r pkg/. .; fi
+          ls
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      - name: Kreye pati Android la
+        run: |
+          flutter create --platforms=android --project-name haiti_loto --org com.haitiloto /tmp/app
+          cp -r /tmp/app/android ./android
+
+      - name: Ajoute pèmisyon yo (Internet + Bluetooth)
+        run: |
+          sed -i 's#<application#<uses-permission android:name="android.permission.INTERNET"/>\n    <uses-permission android:name="android.permission.BLUETOOTH"/>\n    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN"/>\n    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT"/>\n    <uses-permission android:name="android.permission.BLUETOOTH_SCAN"/>\n    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>\n    <application#' android/app/src/main/AndroidManifest.xml
+          grep -n "uses-permission" android/app/src/main/AndroidManifest.xml
+
+      - run: flutter pub get
+      - run: flutter build apk --release
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: haiti-loto-apk
+          path: build/app/outputs/flutter-apk/app-release.apk
