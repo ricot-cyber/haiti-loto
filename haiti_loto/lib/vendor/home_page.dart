@@ -35,8 +35,8 @@ class _HomePageState extends State<HomePage> {
 
   String _left(Map<String, dynamic> d) {
     var c = closeToday(d['close_time'] as String);
-    if (c.isBefore(DateTime.now())) c = c.add(const Duration(days: 1));
-    final x = c.difference(DateTime.now());
+    if (c.isBefore(haitiNow())) c = c.add(const Duration(days: 1));
+    final x = c.difference(haitiNow());
     String two(int n) => n.toString().padLeft(2, '0');
     return '${two(x.inHours)}:${two(x.inMinutes % 60)}:${two(x.inSeconds % 60)}';
   }
