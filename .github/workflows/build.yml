@@ -14,7 +14,9 @@ jobs:
 
       - name: Mete kòd la nan rasin lan
         run: |
-          if [ -d pkg ]; then cp -r pkg/. .; fi
+          for d in haiti_loto pkg; do
+            if [ -f "$d/pubspec.yaml" ]; then cp -r "$d"/. .; fi
+          done
           ls -la
           test -f pubspec.yaml
 
