@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:print_bluetooth_thermal/print_bluetooth_thermal.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../config.dart';
+import 'print_page.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -61,6 +62,22 @@ class _SettingsPageState extends State<SettingsPage> {
                   color: (connected && current == d.macAdress) ? kGreen : Colors.redAccent),
               onTap: () => _connect(d),
             ),
+          const SizedBox(height: 12),
+          SizedBox(
+            height: 48,
+            child: OutlinedButton.icon(
+              icon: const Icon(Icons.print),
+              label: const Text('Enprime yon tès'),
+              onPressed: () async {
+                try {
+                  await ThermalPrinter.write(context,
+                      await ThermalPrinter.textDoc(['Tes enprimant OK', '1234567890'], title: 'HAITI LOTO'));
+                } catch (e) {
+                  if (context.mounted) toast(context, errMsg(e));
+                }
+              },
+            ),
+          ),
           const SizedBox(height: 20),
           SizedBox(
             height: 48,
