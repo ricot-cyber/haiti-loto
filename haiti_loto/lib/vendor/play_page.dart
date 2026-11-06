@@ -196,7 +196,9 @@ class _PlayPageState extends State<PlayPage> {
           ),
         ],
       ),
-      body: Padding(
+      body: SafeArea(
+        top: false,
+        child: Padding(
         padding: const EdgeInsets.all(10),
         child: Column(children: [
           SizedBox(
@@ -298,7 +300,7 @@ class _PlayPageState extends State<PlayPage> {
             ),
           ),
         ]),
-      ),
+      )),
     );
   }
 }
