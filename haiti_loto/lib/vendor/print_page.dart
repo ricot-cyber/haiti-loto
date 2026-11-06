@@ -41,31 +41,61 @@ class ThermalPrinter {
     return b;
   }
 
+  static const _short = {'BOLET': 'BOR', 'MARYAJ': 'MAR', 'LOTO3': 'L3', 'LOTO4': 'L4', 'LOTO5': 'L5'};
+
   static Future<List<int>> receipt(Map<String, dynamic> t) async {
     final g = Generator(PaperSize.mm58, await CapabilityProfile.load());
+    const w = 32;
+    const center = PosStyles(align: PosAlign.center);
+    String two(int n) => n.toString().padLeft(2, '0');
+    String lr(String l, String r) {
+      final sp = w - l.length - r.length;
+      return l + ' ' * (sp < 1 ? 1 : sp) + r;
+    }
+
+    final d = toHaiti(DateTime.parse(t['created_at'].toString()));
+    final bank = ascii((appSettings['bank_name'] ?? 'HAITI LOTO').toString().toUpperCase());
+    final vname = ascii((appSettings['vendor_name'] ?? '').toString().toUpperCase());
+    final phone = (appSettings['support_phone'] ?? '').toString();
+    final pid = (t['public_id'] ?? '').toString();
+    final sq = (t['sq'] ?? 0).toString().padLeft(4, '0');
+    final tno = (t['t_no'] ?? 0).toString().padLeft(4, '0');
+
     List<int> b = [];
-    b += g.text(ascii((appSettings['bank_name'] ?? 'HAITI LOTO').toString()),
+    b += g.text(bank,
         styles: const PosStyles(align: PosAlign.center, bold: true, height: PosTextSize.size2));
-    b += g.text(ascii('Tiraj: ${t['draws']['name']}'), styles: const PosStyles(bold: true));
-    b += g.text('ID: ${t['public_id']}');
-    b += g.text('Date: ${_dt(t['created_at'])}');
+    if (vname.isNotEmpty) b += g.text(vname, styles: center);
+    if (phone.isNotEmpty) b += g.text('Tel: $phone', styles: center);
+    b += g.text(lr('Ref: ${appSettings['vendor_user'] ?? ''}', 'TID: ${appSettings['tid'] ?? ''}'));
+    b += g.text('SQ.: $sq');
+    b += g.text('Serial: $pid');
+    b += g.text(lr('Date: ${two(d.day)}-${two(d.month)}-${d.year}',
+        'Heure: ${two(d.hour)}:${two(d.minute)}:${two(d.second)}'));
     b += g.hr();
-    for (final e in _grouped(t).entries) {
-      b += g.text(ascii(games[e.key]!['label'] as String), styles: const PosStyles(bold: true));
-      for (final l in e.value) {
-        b += g.text('${(l['number'] as String).padRight(10)}${money(l['amount'] as num)}');
-      }
+    b += g.text(lr(ascii(t['draws']['name'].toString().toUpperCase()), 'T. No.$tno'),
+        styles: const PosStyles(bold: true));
+    b += g.hr();
+    for (final l in (t['ticket_lines'] as List)) {
+      final sh = (_short[l['game']] ?? l['game']).toString();
+      b += g.text(lr('${sh.padRight(5)}${l['number'].toString().padLeft(5)} >',
+          (l['amount'] as num).toStringAsFixed(2)));
     }
     b += g.hr();
-    b += g.text('TOTAL: ${money(t['total'] as num)} G',
-        styles: const PosStyles(bold: true, height: PosTextSize.size2));
-    b += g.text('Verifye fich la avan ou pati', styles: const PosStyles(align: PosAlign.center));
+    b += g.text('TOTAL => HTG ${(t['total'] as num).toStringAsFixed(2)}',
+        styles: const PosStyles(align: PosAlign.center, bold: true, height: PosTextSize.size2));
+    b += g.hr();
+    b += g.text(pid, styles: center);
+    b += g.text(
+        'Fich la peyab bay pote a selman. Li valab pandan 90 jou. '
+        'Se selman nimewo ki ekri klèman sou fich sa a ki pral peye.'
+            .replaceAll('è', 'e'));
+    if (vname.isNotEmpty) b += g.text('Mesi "$vname"');
     b += g.feed(3);
     return b;
   }
 
   static String _dt(dynamic s) {
-    final d = DateTime.parse(s.toString()).toLocal();
+    final d = toHaiti(DateTime.parse(s.toString()));
     String two(int n) => n.toString().padLeft(2, '0');
     return '${d.year}-${two(d.month)}-${two(d.day)} ${two(d.hour)}:${two(d.minute)}:${two(d.second)}';
   }
