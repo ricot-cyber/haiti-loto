@@ -32,7 +32,11 @@ class _VendorShellState extends State<VendorShell> {
       await sb.rpc('register_device', params: {'p_device': dev});
       await syncClock();
       final s = await sb.from('director_settings').select().maybeSingle();
-      appSettings = s ?? {};
+      appSettings = Map<String, dynamic>.from(s ?? {});
+      final me = await sb.from('profiles').select().eq('id', sb.auth.currentUser!.id).single();
+      appSettings['vendor_name'] = me['full_name'] ?? me['username'];
+      appSettings['vendor_user'] = me['username'];
+      appSettings['tid'] = dev.substring(0, 8).toUpperCase();
     } catch (e) {
       error = errMsg(e);
     }
