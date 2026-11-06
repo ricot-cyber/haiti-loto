@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../config.dart';
+import 'choose_draw_page.dart';
 import 'print_page.dart';
 
 class Line {
@@ -129,30 +130,11 @@ class _PlayPageState extends State<PlayPage> {
 
   Future<void> _choose() async {
     if (lines.isEmpty) return toast(context, 'Ou poko mize anyen');
-    final r = await sb.from('draws').select().eq('active', true).order('close_time');
-    final draws = List<Map<String, dynamic>>.from(r).where(drawOpen).toList();
-    if (draws.isEmpty) return toast(context, 'Tout tiraj fèmen');
-    if (!mounted) return;
-    final picked = await showModalBottomSheet<List<int>>(
-      context: context,
-      isScrollControlled: true,
-      builder: (_) => _DrawPicker(draws: draws, total: total),
-    );
-    if (picked == null || picked.isEmpty) return;
-    final ids = <int>[];
-    try {
-      for (final id in picked) {
-        final t = await sb.rpc('place_ticket',
-            params: {'p_draw_id': id, 'p_lines': lines.map((l) => l.toJson()).toList()});
-        ids.add((t as num).toInt());
-      }
-    } catch (e) {
-      if (mounted) toast(context, errMsg(e));
-      if (ids.isEmpty) return;
-    }
-    if (!mounted) return;
+    final ids = await Navigator.push<List<int>>(
+        context, MaterialPageRoute(builder: (_) => ChooseDrawPage(lines: lines)));
+    if (ids == null || ids.isEmpty || !mounted) return;
     await Navigator.push(context, MaterialPageRoute(builder: (_) => PrintPage(ids: ids)));
-    setState(() => lines.clear());
+    if (mounted) setState(() => lines.clear());
   }
 
   Widget _row(Line l) {
@@ -303,47 +285,4 @@ class _PlayPageState extends State<PlayPage> {
       )),
     );
   }
-}
-
-class _DrawPicker extends StatefulWidget {
-  final List<Map<String, dynamic>> draws;
-  final double total;
-  const _DrawPicker({required this.draws, required this.total});
-  @override
-  State<_DrawPicker> createState() => _DrawPickerState();
-}
-
-class _DrawPickerState extends State<_DrawPicker> {
-  final sel = <int>{};
-  @override
-  Widget build(BuildContext context) => SafeArea(
-        child: Column(mainAxisSize: MainAxisSize.min, children: [
-          const Padding(
-              padding: EdgeInsets.all(12),
-              child: Text('Chwazi tiraj yo', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold))),
-          for (final d in widget.draws)
-            CheckboxListTile(
-              value: sel.contains(d['id']),
-              title: Text(d['name']),
-              subtitle: Text('Fèmen ${(d['close_time'] as String).substring(0, 5)}'),
-              onChanged: (v) => setState(() {
-                v == true ? sel.add(d['id'] as int) : sel.remove(d['id']);
-              }),
-            ),
-          Padding(
-            padding: const EdgeInsets.all(12),
-            child: Row(children: [
-              Expanded(
-                child: FilledButton(
-                  style: FilledButton.styleFrom(backgroundColor: kGreen),
-                  onPressed: sel.isEmpty ? null : () => Navigator.pop(context, sel.toList()),
-                  child: Text('Konfime • ${money(widget.total * sel.length)} G'),
-                ),
-              ),
-              const SizedBox(width: 8),
-              TextButton(onPressed: () => Navigator.pop(context), child: const Text('Anile')),
-            ]),
-          ),
-        ]),
-      );
 }
