@@ -193,7 +193,8 @@ class _PrintPageState extends State<PrintPage> {
                     ],
                   ]),
                 ),
-                Padding(
+                SafeArea(
+                  child: Padding(
                   padding: const EdgeInsets.all(12),
                   child: Row(children: [
                     Expanded(
@@ -216,7 +217,7 @@ class _PrintPageState extends State<PrintPage> {
                           child: const Icon(Icons.share)),
                     ),
                   ]),
-                ),
+                )),
               ]),
       );
 }
