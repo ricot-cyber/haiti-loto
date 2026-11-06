@@ -57,6 +57,9 @@ Duration _clockOffset = Duration.zero;
 /// Lè Ayiti (soti nan sèvè a), pa lè telefòn lan.
 DateTime haitiNow() => DateTime.now().add(_clockOffset);
 
+/// Konvèti yon timestamp sèvè (UTC) an lè Ayiti.
+DateTime toHaiti(DateTime t) => t.toLocal().add(_clockOffset);
+
 Future<void> syncClock() async {
   try {
     final s = await sb.rpc('haiti_now') as String;
